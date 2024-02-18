@@ -9,6 +9,26 @@ freq = [0.0817, 0.0149, 0.0278, 0.0425, 0.1270, 0.0223,
 freq_stats = dict(zip(list(alphabet), freq))
 
 
+def change_text(text, substitution, input_file):
+    while True:
+        print('table:')
+        print(substitution)
+        print('text: ' + '\n' + '-'*64 + '\n' + text + '\n' + '-'*64)
+
+        param = input('enter q to exit: ')
+        if param == 'q':
+            break
+
+        old_char = input('input old char: ')
+        new_char = input('input new char: ')
+        tmp = dict(zip(substitution.values(), substitution.keys()))
+        substitution[tmp[old_char]] = new_char
+        substitution[tmp[new_char]] = old_char
+        input_file.seek(0)
+        text = ''.join([substitution[ch] for line in input_file for ch in line])
+    return text
+
+
 def get_freq(input_file):
     input_file.seek(0)
     symbols = dict.fromkeys(list(alphabet), 0)
@@ -37,6 +57,7 @@ def freq_analysis(input_file, output_file):
 
     input_file.seek(0)
     decrypt_text = ''.join([substitution[ch] for line in input_file for ch in line])
+    decrypt_text = change_text(decrypt_text, substitution, input_file)
     output_file.write(decrypt_text)
 
 
