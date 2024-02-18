@@ -9,7 +9,8 @@ freq = [0.0817, 0.0149, 0.0278, 0.0425, 0.1270, 0.0223,
 freq_stats = dict(zip(list(alphabet), freq))
 
 
-def frequency_analysis(input_file, output_file):
+def get_freq(input_file):
+    input_file.seek(0)
     symbols = dict.fromkeys(list(alphabet), 0)
     counter = 0
     for line in input_file:
@@ -20,6 +21,12 @@ def frequency_analysis(input_file, output_file):
 
     for char in symbols.keys():
         symbols[char] /= counter
+
+    return symbols
+
+
+def freq_analysis(input_file, output_file):
+    symbols = get_freq(input_file)
 
     sorted_symbols_freq = dict(sorted(symbols.items(), key=lambda item: item[1], reverse=True))
     sorted_freq_stats = dict(sorted(freq_stats.items(), key=lambda item: item[1], reverse=True))
@@ -32,3 +39,16 @@ def frequency_analysis(input_file, output_file):
     decrypt_text = ''.join([substitution[ch] for line in input_file for ch in line])
     output_file.write(decrypt_text)
 
+
+def freq_analysis_caesar(crypt_file):
+    symbols = get_freq(crypt_file)
+
+    possible_keys = dict.fromkeys(range(len(alphabet)), 0)
+
+    for i in list(alphabet):
+        for j in list(alphabet):
+            if abs(symbols[i] - freq_stats[j]) < 0.0005:
+                possible_keys[(alphabet.index(i) - alphabet.index(j)) % len(alphabet)] += 1
+
+    key = sorted(possible_keys.items(), key=lambda item: item[1], reverse=True)[0][0]
+    return key

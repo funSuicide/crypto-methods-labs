@@ -1,14 +1,27 @@
 from caesar_cipher import caesar_operation
-from frequency_analysis import frequency_analysis
+from frequency_analysis import freq_analysis_caesar
 
-input_path = 'open_text.txt'
-output_path = 'cipher_text.txt'
+plain_text_path = 'plain_text.txt'
+cipher_text_path = 'cipher_text.txt'
 decrypt_text_path = 'decrypt_text.txt'
 
-open_file = open(input_path, 'r')
-cipher_file = open(output_path, 'w')
-decrypt_text = open(decrypt_text_path, 'w')
 
-# caesar_operation(open_file, cipher_file, 3, 'e')
-frequency_analysis(open_file, decrypt_text)
+def main():
+    plain_text_file = open(plain_text_path, 'r')
+    cipher_file = open(cipher_text_path, 'r+')
+    decrypt_file = open(decrypt_text_path, 'w')
 
+    caesar_operation(plain_text_file, cipher_file, 3, 'e')
+
+    key = freq_analysis_caesar(cipher_file)
+    print(key)
+
+    caesar_operation(cipher_file, decrypt_file, key, "d")
+
+    plain_text_file.close()
+    cipher_file.close()
+    decrypt_file.close()
+
+
+if __name__ == '__main__':
+    main()
