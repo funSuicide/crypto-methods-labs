@@ -35,7 +35,7 @@ def get_freq(input_file):
     counter = 0
     for line in input_file:
         for char in line:
-            if not (char == ' ' or char == '\n'):
+            if char.lower() in alphabet:
                 symbols[char.lower()] += 1
                 counter += 1
 
@@ -68,8 +68,17 @@ def freq_analysis_caesar(crypt_file):
 
     for i in list(alphabet):
         for j in list(alphabet):
-            if abs(symbols[i] - freq_stats[j]) < 0.0005:
+            if abs(symbols[i] - freq_stats[j]) < 0.05:
                 possible_keys[(alphabet.index(i) - alphabet.index(j)) % len(alphabet)] += 1
 
+    # пройти только по пикам
+
+
+    print(symbols)
+    print()
+
+
     key = sorted(possible_keys.items(), key=lambda item: item[1], reverse=True)[0][0]
+    print(possible_keys)
+
     return key

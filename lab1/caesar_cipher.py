@@ -1,4 +1,6 @@
 alphabet = 'abcdefghijklmnopqrstuvwxyz'
+ignore = [' ', ', ', '\n', ';', ':', '\t', '"', '-', '?', '!', '(', ')']
+
 
 
 def caesar_operation(input_file, output_file, key, mode="d"):
@@ -10,9 +12,9 @@ def caesar_operation(input_file, output_file, key, mode="d"):
 
     for line in input_file:
         for char in line:
-            if char == ' ' or char == '\n':
-                output_file.write(char)
-            else:
-                new_index = (alphabet.index(char) + key + len(alphabet)) % len(alphabet)
+            if char.lower() in alphabet:
+                new_index = (alphabet.index(char.lower()) + key + len(alphabet)) % len(alphabet)
                 new_char = alphabet[new_index]
                 output_file.write(new_char)
+            else:
+                output_file.write(char)
