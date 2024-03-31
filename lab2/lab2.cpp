@@ -2,32 +2,18 @@
 #include <vector>
 #include <iostream>
 #include <bitset>
+#include <fstream>
 
-// регистр на 16 бит
-void LFSR16(std::vector<uint8_t>& coefficients)
+uint32_t moduleTransform(uint32_t value, uint8_t p)
 {
-	uint16_t startOutput = 0xACE1u;
-	uint16_t currentOutput = startOutput;
-	uint16_t tmp;
-	unsigned t = 0;
-	do
-	{
-		tmp = 0;
-		for (auto i = coefficients.begin(); i != coefficients.end(); ++i)
-		{
-			tmp = tmp ^ (currentOutput >> (15 - *i));
-		}
-		currentOutput = (currentOutput >> 1) | (tmp << (15));
-		std::bitset<16> bits(currentOutput);
-		std::cout << t << ":" << currentOutput << std::endl;
-		t++;
-	} while (currentOutput != startOutput);
-	std::cout << "Perior = " << t << std::endl;
+	return (value % p + p) % p;
 }
 
 // регистр для n <= 32 вроде работает, но по размеру числа все равно будут 4 байта
-void LFSR(std::vector<uint8_t>& coefficients, uint32_t startValue)
+std::vector<uint8_t> LFSR(std::vector<uint8_t>& coefficients, uint32_t startValue)
 {
+	std::vector<uint8_t> result;
+
 	uint8_t n = coefficients[0];
 	uint32_t startOutput = startValue;
 	uint32_t currentOutput = startOutput;
@@ -44,17 +30,68 @@ void LFSR(std::vector<uint8_t>& coefficients, uint32_t startValue)
 		}
 		currentOutput = (((currentOutput >> 1) | (tmp << (n-1))) & mask);
 		std::bitset<32> bits(currentOutput);
-		std::cout << t << ":" << currentOutput << std::endl;
+
+		uint8_t currentBit = (currentOutput >> (n-1)) & 1u;
+		result.push_back(currentBit);
 		t++;
 	} 
 	while (currentOutput != startOutput);
-	std::cout << "Perior = " << t << std::endl;
+	//std::cout << "Period = " << t << std::endl;
+
+	return result;
+}
+
+std::vector<uint8_t> generator(uint32_t size)
+{
+	std::vector<uint8_t> coeff = { 20, 17 };
+	uint8_t startValue = 0xA;
+
+	std::vector<uint8_t> result(size);
+	for (uint32_t currentSize = 0; currentSize < size; )
+	{
+		std::vector<uint8_t> x = LFSR(coeff, 0xA2);
+		std::vector<uint8_t> a = LFSR(coeff, 0xB7);
+
+		for (size_t i = 0; i < a.size(); ++i)
+		{
+			if (a[i] == 1)
+			{
+				result[currentSize] = x[i];
+				currentSize++;
+				std::cout << currentSize << std::endl;
+				if (currentSize >= size)
+				{
+					break;
+				}
+			}
+		}
+	}
+	return result;
 }
 
 int main() {
-	//std::vector<uint8_t> coeff = { 16, 14, 13, 11};
-	//LFSR16(coeff);
-	std::vector<uint8_t> coeff = { 2, 1};
-	LFSR(coeff, 1);
+	
+	uint32_t size = 1000000;
+
+	std::vector<uint8_t> bits = generator(size);
+
+	std::ofstream file("test.txt", std::ios_base::out);
+	if (file.is_open()) { 
+		for (size_t i = 0; i < bits.size(); ++i)
+		{
+			if (bits[i] == 0)
+			{
+				file << '0';
+			}
+			else
+			{
+				file << '1';
+			}
+		}
+		file.close();
+	}
+
+
+	
 	return 0;
 }
