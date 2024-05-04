@@ -4,6 +4,8 @@ from numpy.polynomial import polynomial as P
 import sympy as sp
 import numpy as np
 
+import galois
+
 # p = pow(2, 8)
 # h = 25
 
@@ -47,5 +49,49 @@ def generate_polynomial(p, m):
         array_a.clear()
 
 
-s = generate_polynomial(7, 4)
-print(s)
+def main():
+    # 1. Выбрать конечное поле Fq с характеристикой p, где q = p^h,
+    # p ≥ h, и для которого проблема дискретного логарифмирования разрешима.
+
+    # SageCell:
+    # p = 7
+    # h = 4
+    #
+    # R = GF(p)['x']
+    #
+    # irreducible_polynomials = []
+    # for p in R.polynomials(h):
+    #     if p.is_irreducible():
+    #          irreducible_polynomials.append(p)
+    #
+    # index = randint(0, len(irreducible_polynomials))
+    # print(irreducible_polynomials[index])
+    #
+    # shuffle(irreducible_polynomials)
+    # primitive = 0
+    # for p in irreducible_polynomials:
+    #     if p.is_primitive():
+    #         primitive = p
+    #         break
+    #
+    # print(primitive)
+
+    GF256 = galois.GF(7 ** 3)
+    print(GF256.properties)
+
+    GF = galois.GF(7 ** 3, repr="poly")
+    # test = galois.Poly.Str("x^5 + 143", field=GF)
+
+    f = galois.Poly.Str("2*x^3 + 1", field=GF)
+    # f = GF("2*x^3 + 1")
+    g = galois.Poly.Str("3*x^3 + 5*x^2 + 2*x + 5", field=GF)
+    # g = GF("3*x^3 + 5*x^2 + 2*x + 5")
+
+    print(f*g)
+
+    # s = generate_polynomial(7, 4)
+    # print(s)
+
+
+if __name__ == '__main__':
+    main()
