@@ -5,13 +5,6 @@ import sympy as sp
 import numpy as np
 import galois
 
-# p = pow(2, 8)
-# h = 25
-
-
-p = 9
-h = 3
-
 
 class OpenKey:
     def __init__(self, par_p, par_h, par_c):
@@ -66,21 +59,25 @@ array_a.clear()
 
 
 def get_binomial_coefficient(par_p: int, par_h: int) -> float:
+    if par_p == 0:
+        return 0
+    if par_h == 0:
+        return 1
     return math.factorial(par_p) / (math.factorial(par_h) * math.factorial(par_p - par_h))
 
 
 def get_bin_vector(m: int, par_p: int, par_h: int) -> list:
     current_l = par_h
-    M = []
+    M = [0] * par_p
     current_m = m
 
     for i in range(1, par_p + 1):
         if current_m >= get_binomial_coefficient(par_p=par_p - i, par_h=current_l):
-            M.append(1)
+            M[i-1] = 1
             current_m = current_m - get_binomial_coefficient(par_p=par_p - i, par_h=current_l)
             current_l -= 1
         else:
-            M.append(0)
+            M[i-1] = 0
 
     return M
 
@@ -91,28 +88,31 @@ def get_pi(par_p):
     return result
 
 
-def get_keys(par_p, par_h):
-    GF = galois.GF(par_p ** par_h, repr="poly", irreducible_poly="x^4 + 3*x^3 + 5*x^2 + 6*x + 2")
+def get_keys(par_p, par_h, is_test: bool):
+    GF = galois.GF(par_p ** par_h, repr="poly", irreducible_poly="x^4 + 3*x^3 + 5*x^2 + 6*x + 2",
+                   primitive_element="3*x^3 + 3*x^2 + 6")
     f = galois.Poly.Str("x^4 + 3*x^3 + 5*x^2 + 6*x + 2", field=GF)
-    # g = galois.Poly.Str("3*x^3 + 3*x^2 + 6", field=GF)  # опционально подумать все же над генерацией
-
-    # g = GF.primitive_elements[-1]  # надо подумать как выбрать именно наш, ну как варик по списку поискать просто
+    g_r = galois.Poly.Str("3*x^3 + 3*x^2 + 6", field=GF)  # опционально подумать все же над генерацией
 
     g = GF("3*x^3 + 3*x^2 + 6")
 
     test = GF.Range(start=par_p, stop=par_p + par_p)
 
-    Ai = test.log(g)  # вычислить Ai (диск. лог) - проверить
+    Ai = test.log(base=g)
 
-    pi = get_pi(par_p=par_p)
-    d = random.randint(0, pow(p, h) - 2)
+    if is_test:
+        pi = [6, 4, 0, 2, 1, 5, 3]
+        d = 1702
+    else:
+        pi = get_pi(par_p=par_p)
+        d = random.randint(0, pow(par_p, par_h) - 2)
 
     Ci = []
 
     for i in range(0, par_p):
         Ci.append((Ai[pi[i]] + d) % (pow(par_p, par_h) - 1))
 
-    return OpenKey(par_p=par_p, par_h=par_h, par_c=Ci), CloseKey(par_fx=f, par_gx=g, par_pi=pi, par_d=d)
+    return OpenKey(par_p=par_p, par_h=par_h, par_c=Ci), CloseKey(par_fx=f, par_gx=g_r, par_pi=pi, par_d=d)
 
 
 def encrypt(m: int, A: OpenKey) -> int:
@@ -135,24 +135,49 @@ def decrypt(c: int, A: OpenKey, B: CloseKey) -> int:
     de_p = A.p
     de_fx = B.fx
     de_gx = B.gx
+    de_pi = B.pi
 
-    r = (c - de_h * de_d) % (pow(de_p, de_h) - 1)
+    r = (c - de_h * de_d) % (pow(de_p, de_h) - 1)  # correct
 
-    u_x = pow(de_fx, r, de_gx)
+    u_x = np.power(de_gx, r)
+    u_x %= de_fx  # correct
 
-    s_x = u_x + de_fx
+    s_x = u_x + de_fx  # correct
 
-    Ti = []  # разложение нада
+    tmp = galois.factors(s_x)
 
-    M = []  # получение бинарного вектора
+    Ti = []  # correct
+
+    for poly in tmp[0]:
+        if len(poly.nonzero_coeffs) != 2:
+            Ti.append(0)
+        else:
+            Ti.append(int(poly.coeffs[1]))
+
+    M = [0] * de_p  # correct
+
+    for t in Ti:
+        M[de_pi.index(t)] = 1
 
     m = 0
     l = de_h
 
-    for i in range(1, p + 1):
-        m = 1  # восстановление m
+    for i in range(1, de_p + 1):
+        if M[i - 1] == 1:
+            m = m + get_binomial_coefficient(de_p - i, l)
+            l -= 1
 
-    return m
+    return int(m)
+
+
+def task(data: int, par_p: int, par_h: int, is_test: bool):
+    open_key, close_key = get_keys(par_p=par_p, par_h=par_h, is_test=is_test)
+    open_data = data
+    print('open data: ', open_data)
+    en_data = encrypt(open_data, open_key)
+    print('encrypt data: ', en_data)
+    dec_data = decrypt(c=en_data, A=open_key, B=close_key)
+    print('decrypt data: ', dec_data)
 
 
 def main():
@@ -206,10 +231,11 @@ def main():
     # s = generate_polynomial(7, 4)
     # print(s)
 
-    open_key, close_key = get_keys(par_p=7, par_h=4)
-    en_data = encrypt(22, open_key)
-    print(en_data)
+   # task(22, 7, 4, 1)
+    #print('-'*32)
+    #task(21, 7, 4, 1)
 
+    print(get_bin_vector(21, 7, 4))
 
 if __name__ == '__main__':
     main()
