@@ -96,12 +96,19 @@ def get_keys(par_p, par_h):
     f = galois.Poly.Str("2*x^3 + 1", field=GF)
     g = galois.Poly.Str("3*x^3 + 5*x^2 + 2*x + 5", field=GF)  # опционально подумать все же над генерацией
 
-    Ai = 0  # вычислить Ai (диск. лог)
+    g = GF.primitive_elements[-1]  # надо подумать как выбрать именно наш, ну как варик по списку поискать просто
+
+    test = GF.Range(start=par_p, stop=par_p + par_p)
+
+    Ai = test.log(g)  # вычислить Ai (диск. лог) - проверить
 
     pi = get_pi(par_p=par_p)
     d = random.randint(0, pow(p, h) - 2)
 
-    Ci = 0  # вычислить Ci
+    Ci = []
+
+    for i in range(0, par_p):
+        Ci.append((Ai[pi[i]] + d) % (pow(par_p, par_h) - 1))
 
     return OpenKey(par_p=par_p, par_h=par_h, par_c=Ci), CloseKey(par_fx=f, par_gx=g, par_pi=pi, par_d=d)
 
@@ -119,7 +126,9 @@ def encrypt(m: int, A: OpenKey):
         print('proebali')
         return -1, 0
 
-    result_c = 0  # тут дописать
+    result_c = []
+    for i in range(0, p):
+        result_c += (M[i] * en_c[i]) % (pow(en_p, en_h) - 1)
 
     return 0, result_c
 
@@ -166,17 +175,18 @@ def main():
     Артем вот тут посмотри
     '''
     # print(f * g)
-    test = GF.Range(start=7, stop=7 ** 3)
-    print(test)
-    g = GF.primitive_elements[-1]
-    print(g)
-    print(GF.log(test, g))
+    # test = GF.Range(start=7, stop=7 ** 3)
+    # print(test)
+    # g = GF.primitive_elements[-1]
+    # print(g)
+    # print(len(GF.log(test, g)))
 
     # s = generate_polynomial(7, 4)
     # print(s)
 
-    # open_key, close_key = get_keys(par_p=7, par_h=3)
-
+    open_key, close_key = get_keys(par_p=7, par_h=3)
+    en_data = encrypt(22, open_key)
+    print(en_data)
 
 if __name__ == '__main__':
     main()
