@@ -73,11 +73,11 @@ def get_bin_vector(m: int, par_p: int, par_h: int) -> list:
 
     for i in range(1, par_p + 1):
         if current_m >= get_binomial_coefficient(par_p=par_p - i, par_h=current_l):
-            M[i-1] = 1
-            current_m = current_m - get_binomial_coefficient(par_p=par_p - i, par_h=current_l)
+            M[i - 1] = 1
+            current_m -= get_binomial_coefficient(par_p=par_p - i, par_h=current_l)
             current_l -= 1
         else:
-            M[i-1] = 0
+            M[i - 1] = 0
 
     return M
 
@@ -210,32 +210,13 @@ def main():
     # GF256 = galois.GF(7 ** 3)
     # print(GF256.properties)
 
-    GF = galois.GF(7 ** 3, repr="poly")
-    # test = galois.Poly.Str("x^5 + 143", field=GF)
+    task(22, 7, 4, 1)
+    print('-' * 32)
+    task(17, 7, 4, 0)
+    print('-' * 32)
+    task(26, 7, 4, 0)
+    print('-' * 32)
 
-    f = galois.Poly.Str("2*x^3 + 1", field=GF)
-    # f = GF("2*x^3 + 1")
-    g = galois.Poly.Str("3*x^3 + 5*x^2 + 2*x + 5", field=GF)
-    # g = GF("3*x^3 + 5*x^2 + 2*x + 5")
-
-    '''
-    Артем вот тут посмотри
-    '''
-    # print(f * g)
-    # test = GF.Range(start=7, stop=7 ** 3)
-    # print(test)
-    # g = GF.primitive_elements[-1]
-    # print(g)
-    # print(len(GF.log(test, g)))
-
-    # s = generate_polynomial(7, 4)
-    # print(s)
-
-   # task(22, 7, 4, 1)
-    #print('-'*32)
-    #task(21, 7, 4, 1)
-
-    print(get_bin_vector(21, 7, 4))
 
 if __name__ == '__main__':
     main()
