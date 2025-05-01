@@ -92,7 +92,7 @@ def get_keys(par_p, par_h, is_test: bool):
     GF = galois.GF(par_p ** par_h, repr="poly", irreducible_poly="x^4 + 3*x^3 + 5*x^2 + 6*x + 2",
                    primitive_element="3*x^3 + 3*x^2 + 6")
     f = galois.Poly.Str("x^4 + 3*x^3 + 5*x^2 + 6*x + 2", field=GF)
-    g_r = galois.Poly.Str("3*x^3 + 3*x^2 + 6", field=GF)  # опционально подумать все же над генерацией
+    g_r = galois.Poly.Str("3*x^3 + 3*x^2 + 6", field=GF)
 
     g = GF("3*x^3 + 3*x^2 + 6")
 
